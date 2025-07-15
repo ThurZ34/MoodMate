@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MoodMate</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <span id="theme-icon">🌙</span>
+  </button>
+
+  <div class="container">
+    <div class="header">
+      <h1>MoodMate</h1>
+      <p>Teman curhat yang selalu siap mendengarkan</p>
+    </div>
+
+    <!-- Mood Selection -->
+    <div id="mood-selection" class="mood-grid">
+      <div class="mood-card" onclick="selectMood('senang')">
+        <div class="mood-emoji">😊</div>
+        <div class="mood-text">Senang</div>
+      </div>
+      <div class="mood-card" onclick="selectMood('sedih')">
+        <div class="mood-emoji">😢</div>
+        <div class="mood-text">Sedih</div>
+      </div>
+      <div class="mood-card" onclick="selectMood('marah')">
+        <div class="mood-emoji">😠</div>
+        <div class="mood-text">Marah</div>
+      </div>
+      <div class="mood-card" onclick="selectMood('galau')">
+        <div class="mood-emoji">😔</div>
+        <div class="mood-text">Galau</div>
+      </div>
+      <div class="mood-card" onclick="selectMood('semangat')">
+        <div class="mood-emoji">🔥</div>
+        <div class="mood-text">Semangat</div>
+      </div>
+      <div class="mood-card" onclick="selectMood('tenang')">
+        <div class="mood-emoji">😌</div>
+        <div class="mood-text">Tenang</div>
+      </div>
+    </div>
+
+    <!-- Chat Interface -->
+    <div id="chat-interface" class="chat-container hidden">
+      <div class="chat-header">
+        <div class="current-mood">
+          <span id="current-mood-emoji">😊</span>
+          <span id="current-mood-text">Senang</span>
+        </div>
+        <button class="reset-btn" onclick="resetChat()">Reset</button>
+      </div>
+
+      <div class="mood-slider-container">
+        <div class="mood-slider">
+          <div class="mood-pill" data-mood="senang" onclick="changeMood('senang')">
+            <span>😊</span>
+            <span>Senang</span>
+          </div>
+          <div class="mood-pill" data-mood="sedih" onclick="changeMood('sedih')">
+            <span>😢</span>
+            <span>Sedih</span>
+          </div>
+          <div class="mood-pill" data-mood="marah" onclick="changeMood('marah')">
+            <span>😠</span>
+            <span>Marah</span>
+          </div>
+          <div class="mood-pill" data-mood="galau" onclick="changeMood('galau')">
+            <span>😔</span>
+            <span>Galau</span>
+          </div>
+          <div class="mood-pill" data-mood="semangat" onclick="changeMood('semangat')">
+            <span>🔥</span>
+            <span>Semangat</span>
+          </div>
+          <div class="mood-pill" data-mood="tenang" onclick="changeMood('tenang')">
+            <span>😌</span>
+            <span>Tenang</span>
+          </div>
+          <div class="mood-pill" data-mood="excited" onclick="changeMood('excited')">
+            <span>🤩</span>
+            <span>Excited</span>
+          </div>
+          <div class="mood-pill" data-mood="bingung" onclick="changeMood('bingung')">
+            <span>😵</span>
+            <span>Bingung</span>
+          </div>
+          <div class="mood-pill" data-mood="lelah" onclick="changeMood('lelah')">
+            <span>😴</span>
+            <span>Lelah</span>
+          </div>
+          <div class="mood-pill" data-mood="optimis" onclick="changeMood('optimis')">
+            <span>✨</span>
+            <span>Optimis</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-messages" id="chat-messages">
+        <div class="message bot">
+          <div class="message-avatar bot">🤖</div>
+          <div class="message-content">
+            Hai! Aku siap mendengarkan curhatanmu dan memberikan motivasi serta rekomendasi lagu yang pas 🎶
+          </div>
+        </div>
+      </div>
+
+      <div class="input-area">
+        <textarea 
+          id="message-input" 
+          class="input-field" 
+          placeholder="Ceritakan apa yang ada di pikiranmu..."
+          rows="1"
+          disabled
+        ></textarea>
+        <button class="send-btn" id="send-btn" onclick="sendMessage()">
+          <span>Kirim</span>
+          <span>💬</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentMood = null;
+    let isTyping = false;
+
+    const moodEmojis = {
+      senang: "😊", sedih: "😢", marah: "😠", galau: "😔", 
+      semangat: "🔥", tenang: "😌", excited: "🤩", bingung: "😵", 
+      lelah: "😴", optimis: "✨", cemas: "😰", bahagia: "😄"
+    };
+
+    // Theme toggle
+    function toggleTheme() {
+      document.documentElement.classList.toggle('dark');
+      const themeIcon = document.getElementById('theme-icon');
+      const isDark = document.documentElement.classList.contains('dark');
+      themeIcon.textContent = isDark ? '☀️' : '🌙';
+    }
+
+    // Initialize theme
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark');
+      document.getElementById('theme-icon').textContent = '☀️';
+    }
+
+    function selectMood(mood) {
+      currentMood = mood;
+      document.getElementById('current-mood-emoji').textContent = moodEmojis[mood];
+      document.getElementById('current-mood-text').textContent = mood;
+      
+      document.getElementById('mood-selection').classList.add('hidden');
+      document.getElementById('chat-interface').classList.remove('hidden');
+      
+      updateActiveMoodPill(mood);
+      
+      // Add user message
+      addMessage(`Aku lagi ngerasa ${mood} hari ini ${moodEmojis[mood]}`, true);
+      
+      // Get initial response
+      handleMoodResponse(mood);
+      
+      // Enable input
+      document.getElementById('message-input').disabled = false;
+    }
+
+    function changeMood(mood) {
+      if (mood === currentMood) return;
+      
+      const oldMood = currentMood;
+      currentMood = mood;
+      
+      document.getElementById('current-mood-emoji').textContent = moodEmojis[mood];
+      document.getElementById('current-mood-text').textContent = mood;
+      
+      updateActiveMoodPill(mood);
+      
+      addMessage(`Sekarang aku lagi ngerasa ${mood} ${moodEmojis[mood]}`, true);
+      handleMoodResponse(mood);
+    }
+
+    function updateActiveMoodPill(mood) {
+      document.querySelectorAll('.mood-pill').forEach(pill => {
+        pill.classList.remove('active');
+        if (pill.dataset.mood === mood) {
+          pill.classList.add('active');
+          pill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+      });
+    }
+
+    function addMessage(content, isUser = false) {
+      const messagesContainer = document.getElementById('chat-messages');
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+      
+      messageDiv.innerHTML = `
+        <div class="message-avatar ${isUser ? 'user' : 'bot'}">
+          ${isUser ? '👤' : '🤖'}
+        </div>
+        <div class="message-content">${content}</div>
+      `;
+      
+      messagesContainer.appendChild(messageDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+      if (isTyping) return;
+      isTyping = true;
+      
+      const messagesContainer = document.getElementById('chat-messages');
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'message bot';
+      typingDiv.id = 'typing-indicator';
+      
+      typingDiv.innerHTML = `
+        <div class="message-avatar bot">🤖</div>
+        <div class="message-content">
+          <div class="typing-indicator">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
+        </div>
+      `;
+      
+      messagesContainer.appendChild(typingDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function hideTypingIndicator() {
+      const typingIndicator = document.getElementById('typing-indicator');
+      if (typingIndicator) {
+        typingIndicator.remove();
+      }
+      isTyping = false;
+    }
+
+    async function handleMoodResponse(mood) {
+      showTypingIndicator();
+      
+      try {
+        const response = await fetch("http://localhost:8000/pilih-mood", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mood })
+        });
+
+        const data = await response.json();
+        hideTypingIndicator();
+
+        let responseContent = '';
+        
+        if (data.quote) {
+          responseContent += `
+            <div class="motivation-card">
+              <h4>💡 Motivasi</h4>
+              <p>${data.quote}</p>
+            </div>
+          `;
+        }
+        
+        if (data.recommendations && data.recommendations.length > 0) {
+          responseContent += `
+            <div class="music-card">
+              <h4>🎵 Rekomendasi Lagu</h4>
+              ${data.recommendations.map(track => `
+                <div class="track-item">
+                  <div class="track-info">
+                    <div class="track-name">${track.name}</div>
+                    <div class="track-artist">${track.artist}</div>
+                  </div>
+                  <a href="${track.url}" class="listen-btn" target="_blank">
+                    Dengar ▶️
+                  </a>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+        
+        if (!responseContent) {
+          responseContent = 'Terima kasih sudah berbagi perasaanmu! 😊';
+        }
+        
+        addMessage(responseContent, false);
+        
+      } catch (error) {
+        console.error(error);
+        hideTypingIndicator();
+        addMessage("Maaf, terjadi kesalahan saat menghubungi server. Coba lagi ya! 😢", false);
+      }
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('message-input');
+      const message = input.value.trim();
+      
+      if (!message || input.disabled || isTyping) return;
+      
+      addMessage(message, true);
+      input.value = '';
+      input.disabled = true;
+      
+      showTypingIndicator();
+      
+      try {
+        const response = await fetch("http://localhost:8000/curhat-lanjut", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mood: currentMood || "netral",
+            message: message
+          })
+        });
+
+        const data = await response.json();
+        hideTypingIndicator();
+        
+        addMessage(data.response, false);
+        
+        input.disabled = false;
+        input.focus();
+        
+      } catch (error) {
+        console.error(error);
+        hideTypingIndicator();
+        addMessage("Ups, server lagi error. Coba lagi ya! 😢", false);
+        input.disabled = false;
+      }
+    }
+
+    function resetChat() {
+      currentMood = null;
+      document.getElementById('chat-interface').classList.add('hidden');
+      document.getElementById('mood-selection').classList.remove('hidden');
+      document.getElementById('message-input').disabled = true;
+      document.getElementById('message-input').value = '';
+      
+      // Reset chat messages
+      const messagesContainer = document.getElementById('chat-messages');
+      messagesContainer.innerHTML = `
+        <div class="message bot">
+          <div class="message-avatar bot">🤖</div>
+          <div class="message-content">
+            Hai! Aku siap mendengarkan curhatanmu dan memberikan motivasi serta rekomendasi lagu yang pas 🎶
+          </div>
+        </div>
+      `;
+    }
+
+    // Auto-resize textarea
+    document.getElementById('message-input').addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+
+    // Enter to send
+    document.getElementById('message-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  </script>
+</body>
+</html>
